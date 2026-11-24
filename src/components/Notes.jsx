@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import NoteCard from "./NoteCard.jsx"
 
 const startingNotes = [
@@ -16,9 +16,9 @@ const startingNotes = [
 
 function Notes() {
     const [notes, setNotes] = useState(() => {
-    const saved = localStorage.getItem('notes')
-    return saved ? JSON.parse(saved) : startingNotes
-})
+        const saved = localStorage.getItem('notes')
+        return saved ? JSON.parse(saved) : startingNotes
+    })
 
     const [form, setForm] = useState({
         title: '',
@@ -40,41 +40,41 @@ function Notes() {
         return () => clearTimeout(id)
     }, [form])
 
-function handleChange(event) {
-  const { name, value } = event.target
+    function handleChange(event) {
+    const { name, value } = event.target
 
-  setForm({
-    ...form,
-    [name]: value
-  })
-}
+    setForm({
+        ...form,
+        [name]: value
+    })
+    }
 
-function handleSubmit(event) {
-  event.preventDefault()
+    function handleSubmit(event) {
+    event.preventDefault()
 
-  const title = form.title.trim()
-  const body = form.body.trim()
+    const title = form.title.trim()
+    const body = form.body.trim()
 
-  if (title === '' || body === '') {
-    return
-  }
+    if (title === '' || body === '') {
+        return
+    }
 
-  const newNote = {
-    id: Date.now(),
-    title: title,
-    body: body
-  }
+    const newNote = {
+        id: Date.now(),
+        title: title,
+        body: body
+    }
 
-  setNotes([...notes, newNote])
+    setNotes([...notes, newNote])
 
-  setForm({ title: '', body: '' })
+    setForm({ title: '', body: '' })
 
-  titleRef.current.focus()
-}
+    titleRef.current.focus()
+    }
 
-function handleDelete(id) {
-  setNotes(notes.filter((note) => note.id !== id))
-}
+    const handleDelete = useCallback((id) => {
+        setNotes(notes.filter((note) => note.id !== id))
+    }, [notes])
 
   const visibleNotes = useMemo(() => {
     return notes.filter((note) =>
@@ -135,14 +135,12 @@ function handleDelete(id) {
                     key={note.id}
                     className="relative min-h-32 bg-white px-6 py-5 shadow-[0_2px_4px_0_rgba(0,0,0,0.2),0_25px_50px_0_rgba(0,0,0,0.1)]"
                 >
-                    <NoteCard title={note.title} body={note.body} />
-                    <button
-                        type="button"
-                        onClick={() => handleDelete(note.id)}
-                        className="absolute top-4 right-5 cursor-pointer text-[26px] leading-none text-[#949494] hover:text-[#c18585]"
-                    >
-                        ×
-                    </button>
+                <NoteCard
+                    id={note.id}
+                    title={note.title}
+                    body={note.body}
+                    onDelete={handleDelete}
+                />   
                 </li>
             ))}
             </ul>
